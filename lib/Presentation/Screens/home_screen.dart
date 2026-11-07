@@ -57,57 +57,64 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
 
-      body: RefreshIndicator(
-        onRefresh: () => loadNotes(),
-        child: ListView.separated(
-          itemBuilder: (context, index) {
-            final note = notes[index];
-            return Padding(
-              padding: const EdgeInsets.all(15),
-              child: ListTile(
-                tileColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadiusGeometry.circular(12),
-                ),
-                title: Text(note['title']),
-                subtitle: Text(note['content']),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    //Delete
-                    IconButton(
-                      onPressed: () async {
-                        await Notes().deleteNote(note['id']);
-                        loadNotes();
-                      },
-                      icon: Icon(Icons.delete),
+      body: StreamBuilder(
+        stream: Notes().realTimeRead(),
+        builder: (context, snapshot) {
+          final rnotes = snapshot.data;
+          if (snapshot.hasData) {
+            return ListView.separated(
+              itemBuilder: (context, index) {
+                final note = rnotes[index];
+                return Padding(
+                  padding: const EdgeInsets.all(15),
+
+                  child: ListTile(
+                    tileColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(12),
                     ),
-        
-                    //Edit
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UpdateNoteScreen(
-                              noteTitle: note['title'],
-                              noteContent: note['content'],
-                              noteId: note['id'],
-                            ),
-                          ),
-                        );
-                        loadNotes();
-                      },
-                      icon: Icon(Icons.edit),
+                    title: Text(note['title']),
+                    subtitle: Text(note['content']),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        //Delete
+                        IconButton(
+                          onPressed: () async {
+                            await Notes().deleteNote(note['id']);
+                            loadNotes();
+                          },
+                          icon: Icon(Icons.delete),
+                        ),
+                  
+                        //Edit
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UpdateNoteScreen(
+                                  noteTitle: note['title'],
+                                  noteContent: note['content'],
+                                  noteId: note['id'],
+                                ),
+                              ),
+                            );
+                            loadNotes();
+                          },
+                          icon: Icon(Icons.edit),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) => SizedBox(height: 1),
+              itemCount: rnotes.length,
             );
-          },
-          separatorBuilder: (context, index) => SizedBox(height: 1),
-          itemCount: notes.length,
-        ),
+          }
+          return Container();
+        },
       ),
     );
   }

@@ -38,4 +38,9 @@ class Notes {
 
     await supa.from('notes').delete().eq('id', id).eq('user_id', userId);
   }
+
+  // RealTime
+ Stream realTimeRead() {
+    return supa.from('notes').stream(primaryKey: ['id']);
+  }
 }
